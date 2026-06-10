@@ -8,6 +8,7 @@ export type Goal = {
 
 // Raw shape of one match in openfootball/worldcup.json
 export type OFMatch = {
+  num?: number; // knockout matches only (73–102); final + 3rd place have none
   round: string;
   date: string;
   time?: string;
@@ -25,6 +26,7 @@ export type MatchStatus = "scheduled" | "live" | "finished";
 // Normalised match used throughout the app (openfootball merged with ESPN live data)
 export type WCMatch = {
   id: string;
+  num?: number;
   stage: string;
   group?: string;
   knockout: boolean;
@@ -40,11 +42,25 @@ export type WCMatch = {
   ground?: string;
 };
 
+// A scoring play from ESPN's scoreboard `details` array.
+// teamCode/teamName identify the SCORER's team (for own goals the
+// score counts for the opposition — resolved in mergeEspn).
+export type EspnGoal = {
+  teamCode: string;
+  teamName: string;
+  scorer: string;
+  minute: number;
+  offset?: number;
+  penalty: boolean;
+  ownGoal: boolean;
+};
+
 export type EspnEvent = {
   utcDate: string; // YYYY-MM-DD
   state: "pre" | "in" | "post";
   clock: string;
   teams: { code: string; name: string; score: number }[];
+  goals: EspnGoal[];
 };
 
 export type TeamStatus =

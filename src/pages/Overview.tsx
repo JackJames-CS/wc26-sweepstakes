@@ -5,6 +5,7 @@ import { useParticipant } from "../context/ParticipantContext";
 import { STATUS_ICON, STATUS_LABEL, isAlive } from "../lib/status";
 import { MatchCard } from "../components/MatchCard";
 import { TeamFlag } from "../components/TeamFlag";
+import { CountdownHero } from "../components/CountdownHero";
 import { fmtDate, fmtTime } from "../lib/format";
 
 export function Overview() {
@@ -22,6 +23,8 @@ export function Overview() {
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
+      <CountdownHero />
+
       <section>
         <h2 className="mb-3 text-lg font-bold">The Pool</h2>
         {!drawDone && (

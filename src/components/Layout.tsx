@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { ParticipantPanel } from "./ParticipantPanel";
 import { LiveBanner } from "./LiveBanner";
+import { GoalFlash } from "./GoalFlash";
 import { useParticipant } from "../context/ParticipantContext";
 import { useData } from "../context/DataContext";
 import { minsAgo } from "../lib/format";
@@ -9,7 +10,9 @@ import { minsAgo } from "../lib/format";
 const tabs = [
   { to: "/", label: "Overview", end: true },
   { to: "/groups", label: "Groups" },
+  { to: "/bracket", label: "Bracket" },
   { to: "/history", label: "History" },
+  { to: "/stats", label: "Stats" },
   { to: "/teams", label: "Teams" },
 ];
 
@@ -116,6 +119,8 @@ export function Layout() {
           Data: openfootball + ESPN · Family sweepstakes 2026
         </span>
       </footer>
+
+      <GoalFlash />
     </div>
   );
 }

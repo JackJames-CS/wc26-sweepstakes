@@ -43,7 +43,7 @@ export function LiveBanner() {
           <span
             key={m.id}
             className={`flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
-              m.status === "live" ? "border-accent" : "border-edge"
+              m.status === "live" ? "border-accent bg-accent/10" : "border-edge"
             }`}
           >
             {m.status === "live" && (

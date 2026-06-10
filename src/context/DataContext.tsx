@@ -15,6 +15,7 @@ import { computeGoldenBoot, type Scorer } from "../lib/goldenboot";
 
 const OF_INTERVAL = 5 * 60 * 1000; // full schedule — updated upstream ~daily
 const ESPN_INTERVAL = 60 * 1000; // live scores on matchdays
+const ESPN_LIVE_INTERVAL = 20 * 1000; // tighter poll while a match is in play
 
 type DataContextValue = {
   matches: WCMatch[];
@@ -67,21 +68,31 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
+    let timer: number | undefined;
+    let anyLive = false;
     const load = async () => {
-      if (document.visibilityState === "hidden") return;
-      try {
-        const events = await fetchEspnScoreboard();
-        if (!cancelled) setEspn(events);
-      } catch {
-        /* ESPN is best-effort — openfootball remains the fallback */
+      if (document.visibilityState !== "hidden") {
+        try {
+          const events = await fetchEspnScoreboard();
+          if (cancelled) return;
+          setEspn(events);
+          anyLive = events.some((e) => e.state === "in");
+        } catch {
+          /* ESPN is best-effort — openfootball remains the fallback */
+        }
+        if (!cancelled) setTick((t) => t + 1);
       }
-      if (!cancelled) setTick((t) => t + 1);
+      if (!cancelled) {
+        timer = window.setTimeout(
+          load,
+          anyLive ? ESPN_LIVE_INTERVAL : ESPN_INTERVAL,
+        );
+      }
     };
     load();
-    const id = setInterval(load, ESPN_INTERVAL);
     return () => {
       cancelled = true;
-      clearInterval(id);
+      clearTimeout(timer);
     };
   }, []);
 

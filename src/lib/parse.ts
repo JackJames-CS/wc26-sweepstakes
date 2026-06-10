@@ -58,6 +58,7 @@ export function toWCMatches(raw: OFMatch[], now = new Date()): WCMatch[] {
       status = "live";
     return {
       id: `${m.date}-${m.team1}-${m.team2}`,
+      num: m.num,
       stage: m.group ?? m.round,
       group: m.group?.replace("Group ", ""),
       knockout: m.group === undefined,

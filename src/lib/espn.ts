@@ -1,4 +1,4 @@
-import type { EspnEvent, WCMatch } from "../types";
+import type { EspnEvent, EspnGoal, Goal, WCMatch } from "../types";
 import { TEAM_BY_CODE, TEAM_BY_NAME } from "../data/teams";
 
 const ESPN_URL =
@@ -29,6 +29,28 @@ function resolveTeamName(code: string, displayName: string): string | null {
   return ESPN_NAME_ALIASES[displayName.toLowerCase()] ?? null;
 }
 
+// ESPN clock strings look like "45'" or "45'+2'"
+function parseClock(display: string): { minute: number; offset?: number } {
+  const m = display.match(/^(\d+)'(?:\s*\+\s*(\d+)')?/);
+  if (!m) return { minute: 0 };
+  return { minute: Number(m[1]), offset: m[2] ? Number(m[2]) : undefined };
+}
+
+type EspnCompetitor = {
+  team: { id?: string; abbreviation?: string; displayName?: string };
+  score?: string;
+};
+
+type EspnDetail = {
+  type?: { text?: string };
+  clock?: { displayValue?: string };
+  team?: { id?: string };
+  scoringPlay?: boolean;
+  penaltyKick?: boolean;
+  ownGoal?: boolean;
+  athletesInvolved?: { displayName?: string }[];
+};
+
 export async function fetchEspnScoreboard(): Promise<EspnEvent[]> {
   const res = await fetch(ESPN_URL);
   if (!res.ok) throw new Error(`espn fetch failed: ${res.status}`);
@@ -39,19 +61,42 @@ export async function fetchEspnScoreboard(): Promise<EspnEvent[]> {
     if (!comp) continue;
     const state = comp.status?.type?.state;
     if (state !== "pre" && state !== "in" && state !== "post") continue;
-    const teams = (comp.competitors ?? []).map(
-      (c: { team: { abbreviation?: string; displayName?: string }; score?: string }) => ({
-        code: c.team?.abbreviation ?? "",
-        name: c.team?.displayName ?? "",
-        score: Number(c.score ?? 0),
-      }),
-    );
+    const competitors: EspnCompetitor[] = comp.competitors ?? [];
+    const teams = competitors.map((c) => ({
+      code: c.team?.abbreviation ?? "",
+      name: c.team?.displayName ?? "",
+      score: Number(c.score ?? 0),
+    }));
     if (teams.length !== 2) continue;
+    // detail.team.id is the SCORER's team — map it back to code/name
+    const byId = new Map(
+      competitors.map((c) => [
+        c.team?.id ?? "",
+        { code: c.team?.abbreviation ?? "", name: c.team?.displayName ?? "" },
+      ]),
+    );
+    const goals: EspnGoal[] = [];
+    for (const d of (comp.details ?? []) as EspnDetail[]) {
+      if (!d.scoringPlay) continue;
+      const t = byId.get(d.team?.id ?? "");
+      if (!t) continue;
+      const { minute, offset } = parseClock(d.clock?.displayValue ?? "");
+      goals.push({
+        teamCode: t.code,
+        teamName: t.name,
+        scorer: d.athletesInvolved?.[0]?.displayName ?? "",
+        minute,
+        offset,
+        penalty: d.penaltyKick === true,
+        ownGoal: d.ownGoal === true,
+      });
+    }
     events.push({
       utcDate: (e.date ?? "").slice(0, 10),
       state,
       clock: comp.status?.displayClock ?? "",
       teams,
+      goals,
     });
   }
   return events;
@@ -82,6 +127,27 @@ export function mergeEspn(matches: WCMatch[], events: EspnEvent[]): WCMatch[] {
       );
       return t ? t.score : null;
     };
+    // ESPN scoring plays → openfootball goal lists (own goals count for
+    // the opposition, listed under the side they scored FOR, like openfootball).
+    const goalsFor = (team: string, other: string): Goal[] =>
+      ev.goals
+        .filter((g) => {
+          const scorerTeam = resolveTeamName(g.teamCode, g.teamName);
+          if (!scorerTeam) return false;
+          const benefits = g.ownGoal
+            ? scorerTeam === team
+              ? other
+              : team
+            : scorerTeam;
+          return benefits === team;
+        })
+        .map((g) => ({
+          name: g.scorer,
+          minute: g.minute,
+          offset: g.offset,
+          penalty: g.penalty || undefined,
+          owngoal: g.ownGoal || undefined,
+        }));
     if (ev.state === "in") {
       return {
         ...m,
@@ -89,6 +155,8 @@ export function mergeEspn(matches: WCMatch[], events: EspnEvent[]): WCMatch[] {
         score1: scoreFor(m.team1),
         score2: scoreFor(m.team2),
         clock: ev.clock || null,
+        goals1: goalsFor(m.team1, m.team2),
+        goals2: goalsFor(m.team2, m.team1),
       };
     }
     if (ev.state === "post" && m.status !== "finished") {
@@ -98,6 +166,8 @@ export function mergeEspn(matches: WCMatch[], events: EspnEvent[]): WCMatch[] {
         score1: scoreFor(m.team1),
         score2: scoreFor(m.team2),
         clock: null,
+        goals1: goalsFor(m.team1, m.team2),
+        goals2: goalsFor(m.team2, m.team1),
       };
     }
     return m;

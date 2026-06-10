@@ -49,7 +49,12 @@ export function MatchCard({
       </div>
     ) : (
       <div className="text-center">
-        <div className="text-xl font-extrabold tabular-nums">
+        <div
+          key={`${match.score1}:${match.score2}`}
+          className={`text-xl font-extrabold tabular-nums ${
+            status === "live" ? "animate-score-pop" : ""
+          }`}
+        >
           {match.score1 ?? "–"} : {match.score2 ?? "–"}
         </div>
         {status === "live" ? (
@@ -81,7 +86,8 @@ export function MatchCard({
         {centre}
         <TeamSide team={match.team2} alignRight />
       </div>
-      {showScorers && (match.goals1.length > 0 || match.goals2.length > 0) && (
+      {(showScorers || status === "live") &&
+        (match.goals1.length > 0 || match.goals2.length > 0) && (
         <div className="mt-2 flex justify-between gap-2 border-t border-edge pt-2 text-xs text-soft">
           <div>
             {match.goals1.map((g, i) => (
