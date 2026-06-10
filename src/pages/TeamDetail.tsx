@@ -6,6 +6,7 @@ import { STATUS_ICON, STATUS_LABEL } from "../lib/status";
 import { GroupTable } from "../components/GroupTable";
 import { MatchCard } from "../components/MatchCard";
 import { TeamFlag } from "../components/TeamFlag";
+import { TeamHistoryCard, H2HCard } from "../components/TeamHistoryCard";
 
 export function TeamDetail() {
   const { name } = useParams();
@@ -61,6 +62,8 @@ export function TeamDetail() {
         </div>
       </div>
 
+      <TeamHistoryCard fifaCode={team.fifaCode} />
+
       {standings.get(team.group) && (
         <GroupTable group={team.group} rows={standings.get(team.group)!} />
       )}
@@ -81,7 +84,10 @@ export function TeamDetail() {
           <h2 className="mb-2 font-bold">Upcoming</h2>
           <div className="space-y-2">
             {upcoming.map((m) => (
-              <MatchCard key={m.id} match={m} />
+              <div key={m.id} className="space-y-2">
+                <MatchCard match={m} />
+                <H2HCard team1={m.team1} team2={m.team2} />
+              </div>
             ))}
           </div>
         </section>
