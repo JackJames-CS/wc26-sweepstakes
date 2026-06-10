@@ -7,6 +7,7 @@ import { GroupTable } from "../components/GroupTable";
 import { MatchCard } from "../components/MatchCard";
 import { TeamFlag } from "../components/TeamFlag";
 import { TeamHistoryCard, H2HCard } from "../components/TeamHistoryCard";
+import { SquadList } from "../components/SquadList";
 
 export function TeamDetail() {
   const { name } = useParams();
@@ -92,6 +93,8 @@ export function TeamDetail() {
           </div>
         </section>
       )}
+
+      <SquadList team={team.name} />
     </div>
   );
 }

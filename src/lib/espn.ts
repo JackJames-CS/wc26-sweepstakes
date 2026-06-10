@@ -14,6 +14,7 @@ const ESPN_NAME_ALIASES: Record<string, string> = {
   "cote d'ivoire": "Ivory Coast",
   "united states": "USA",
   "bosnia and herzegovina": "Bosnia & Herzegovina",
+  "bosnia-herzegovina": "Bosnia & Herzegovina",
   "ir iran": "Iran",
   "congo dr": "DR Congo",
   "democratic republic of the congo": "DR Congo",

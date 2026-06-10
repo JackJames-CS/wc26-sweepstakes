@@ -5,6 +5,7 @@ import { Groups } from "./pages/Groups";
 import { History } from "./pages/History";
 import { Teams } from "./pages/Teams";
 import { TeamDetail } from "./pages/TeamDetail";
+import { PlayerDetail } from "./pages/PlayerDetail";
 import { DataProvider } from "./context/DataContext";
 import { ParticipantProvider } from "./context/ParticipantContext";
 
@@ -20,6 +21,7 @@ export default function App() {
               <Route path="history" element={<History />} />
               <Route path="teams" element={<Teams />} />
               <Route path="teams/:name" element={<TeamDetail />} />
+              <Route path="teams/:name/players/:pid" element={<PlayerDetail />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
