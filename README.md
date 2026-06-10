@@ -21,15 +21,19 @@ Edit `src/config/participants.ts` and fill each player's `teams` array with
 team names exactly as they appear in `src/data/teams.ts` (openfootball naming,
 e.g. `"Czech Republic"`, `"South Korea"`, `"USA"`). Push — that's it.
 
-## Development
+## Development (only needed to change the code)
+
+The live site needs nothing running — it's static files on GitHub Pages, and
+each visitor's browser fetches the match data itself. These commands are only
+for editing the site on your own machine:
 
 ```bash
 npm install
-npm run dev      # local dev server
-npm run build    # type-check + production build
+npm run dev      # preview your changes locally before pushing
+npm run build    # type-check + production build (GitHub runs this on deploy)
 ```
 
-Deploys automatically to GitHub Pages on every push to `main`.
+Push to `main` and GitHub rebuilds + redeploys the live site automatically.
 
 ## Tabs
 
