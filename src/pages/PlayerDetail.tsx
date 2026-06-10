@@ -77,32 +77,55 @@ export function PlayerDetail() {
     <div className="mx-auto max-w-3xl space-y-6">
       {backLink}
 
-      <div className="flex items-center gap-4 rounded-xl border border-edge bg-card p-4 shadow-sm">
-        <span className="w-14 shrink-0 text-center font-mono text-3xl font-extrabold text-soft">
-          {player.jersey ?? "–"}
+      <div
+        className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg"
+        style={{
+          background:
+            "linear-gradient(135deg, #1a1a2e 0%, #16213e 55%, #41295a 100%)",
+        }}
+      >
+        <span className="pointer-events-none absolute -right-2 -top-8 font-mono text-[7rem] font-black leading-none text-white/10 sm:text-[9rem]">
+          {player.jersey ?? ""}
         </span>
-        <div className="min-w-0">
-          <h1 className="text-xl font-extrabold">{player.name}</h1>
-          <div className="flex flex-wrap items-center gap-x-2 text-sm text-soft">
-            <span>{POS_NAME[player.pos] ?? player.pos}</span>
-            <span>·</span>
+        <div className="relative">
+          <div className="text-[10px] font-bold uppercase tracking-[0.25em] text-tangerine">
+            {POS_NAME[player.pos] ?? player.pos}
+          </div>
+          <h1 className="mt-1 text-2xl font-black sm:text-3xl">
+            {player.name}
+          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/85">
             <Link
               to={`/teams/${encodeURIComponent(team.name)}`}
-              className="inline-flex items-center gap-1 hover:underline"
+              className="inline-flex items-center gap-1.5 hover:underline"
             >
-              <TeamFlag team={team.name} size={16} />
+              <TeamFlag team={team.name} size={18} />
               {team.name}
             </Link>
-          </div>
-          {owner && (
-            <div className="mt-1 text-sm">
-              Drawn by{" "}
-              <span
-                className="rounded-full px-2 py-0.5 text-xs font-medium text-white"
-                style={{ backgroundColor: owner.colour }}
-              >
-                {owner.name}
+            {player.club && (
+              <span className="inline-flex items-center gap-1.5">
+                {player.clubLogo && (
+                  <img src={player.clubLogo} alt="" className="h-5 w-5" />
+                )}
+                {player.club}
               </span>
+            )}
+          </div>
+          {(owner || goals.length > 0) && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+              {owner && (
+                <span
+                  className="rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+                  style={{ backgroundColor: owner.colour }}
+                >
+                  Drawn by {owner.name}
+                </span>
+              )}
+              {goals.length > 0 && (
+                <span className="rounded-full bg-white/15 px-2.5 py-0.5 text-xs font-semibold">
+                  ⚽ {goals.length} this tournament
+                </span>
+              )}
             </div>
           )}
         </div>
