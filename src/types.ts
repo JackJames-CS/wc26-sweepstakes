@@ -1,0 +1,67 @@
+export type Goal = {
+  name: string;
+  minute: number;
+  offset?: number;
+  penalty?: boolean;
+  owngoal?: boolean;
+};
+
+// Raw shape of one match in openfootball/worldcup.json
+export type OFMatch = {
+  round: string;
+  date: string;
+  time?: string;
+  team1: string;
+  team2: string;
+  group?: string;
+  ground?: string;
+  score?: { ft: [number, number]; ht?: [number, number] };
+  goals1?: Goal[];
+  goals2?: Goal[];
+};
+
+export type MatchStatus = "scheduled" | "live" | "finished";
+
+// Normalised match used throughout the app (openfootball merged with ESPN live data)
+export type WCMatch = {
+  id: string;
+  stage: string;
+  group?: string;
+  knockout: boolean;
+  kickoff: Date | null;
+  team1: string;
+  team2: string;
+  score1: number | null;
+  score2: number | null;
+  status: MatchStatus;
+  clock: string | null;
+  goals1: Goal[];
+  goals2: Goal[];
+  ground?: string;
+};
+
+export type EspnEvent = {
+  utcDate: string; // YYYY-MM-DD
+  state: "pre" | "in" | "post";
+  clock: string;
+  teams: { code: string; name: string; score: number }[];
+};
+
+export type TeamStatus =
+  | "group"
+  | "knockout"
+  | "eliminated"
+  | "runnerup"
+  | "champion";
+
+export type StandingRow = {
+  team: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  gf: number;
+  ga: number;
+  gd: number;
+  pts: number;
+};
