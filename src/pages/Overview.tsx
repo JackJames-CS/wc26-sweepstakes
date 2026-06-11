@@ -29,6 +29,21 @@ export function Overview() {
       <DailyBulletin />
 
       <section>
+        <h2 className="mb-3 text-lg font-bold">
+          Next fixtures{selected ? ` — ${selected.name}` : ""}
+        </h2>
+        {fixtures.length === 0 ? (
+          <p className="text-sm text-soft">No upcoming fixtures found.</p>
+        ) : (
+          <div className="space-y-2">
+            {fixtures.map((m) => (
+              <MatchCard key={m.id} match={m} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
         <h2 className="mb-3 text-lg font-bold">The Pool</h2>
         {!drawDone && (
           <div className="mb-3 rounded-xl border border-tangerine bg-card p-4 shadow-sm">
@@ -103,21 +118,6 @@ export function Overview() {
             );
           })}
         </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-bold">
-          Next fixtures{selected ? ` — ${selected.name}` : ""}
-        </h2>
-        {fixtures.length === 0 ? (
-          <p className="text-sm text-soft">No upcoming fixtures found.</p>
-        ) : (
-          <div className="space-y-2">
-            {fixtures.map((m) => (
-              <MatchCard key={m.id} match={m} />
-            ))}
-          </div>
-        )}
       </section>
 
       {goldenBoot.length > 0 && (
