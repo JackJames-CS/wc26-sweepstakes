@@ -3,7 +3,6 @@ import { useData } from "../context/DataContext";
 import { useParticipant } from "../context/ParticipantContext";
 import { useSquads } from "../hooks/useSquads";
 import { TeamFlag } from "../components/TeamFlag";
-import { OwnerBadge } from "../components/OwnerBadge";
 import { ownerOf } from "../config/participants";
 import { isToday, fmtTime, fmtDate } from "../lib/format";
 import type { WCMatch, SquadPlayer } from "../types";
