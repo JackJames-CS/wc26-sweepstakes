@@ -4,6 +4,7 @@ import { Overview } from "./pages/Overview";
 import { Groups } from "./pages/Groups";
 import { Bracket } from "./pages/Bracket";
 import { History } from "./pages/History";
+import { Live } from "./pages/Live";
 import { Stats } from "./pages/Stats";
 import { Teams } from "./pages/Teams";
 import { TeamDetail } from "./pages/TeamDetail";
@@ -19,6 +20,7 @@ export default function App() {
           <Routes>
             <Route element={<Layout />}>
               <Route index element={<Overview />} />
+              <Route path="live" element={<Live />} />
               <Route path="groups" element={<Groups />} />
               <Route path="bracket" element={<Bracket />} />
               <Route path="history" element={<History />} />
