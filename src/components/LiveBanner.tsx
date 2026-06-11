@@ -5,6 +5,7 @@ import { isToday, fmtTime } from "../lib/format";
 import { TEAM_BY_NAME } from "../data/teams";
 import { isRealTeam } from "../lib/parse";
 import { ownerOf } from "../config/participants";
+import { TeamFlag } from "./TeamFlag";
 
 export function LiveBanner() {
   const { matches } = useData();
@@ -43,44 +44,69 @@ export function LiveBanner() {
           <Link
             key={m.id}
             to="/live"
-            className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-accent/5"
+            className="block border-b-2 border-red-500 transition-opacity hover:opacity-90"
             style={{
               background: isMine
-                ? `linear-gradient(90deg, ${selected!.colour}18, transparent)`
-                : "linear-gradient(90deg, rgba(239,68,68,0.07), transparent)",
+                ? `linear-gradient(135deg, ${selected!.colour}30 0%, #1a0a0a 60%)`
+                : "linear-gradient(135deg, #3b0000 0%, #1a0a0a 60%)",
             }}
           >
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-              <span className="text-xs font-black uppercase tracking-widest text-red-500">
-                Live
-              </span>
-              <span className="text-soft">{m.clock ?? ""}</span>
-            </div>
+            <div className="flex items-center gap-3 px-4 py-3">
+              {/* LIVE badge */}
+              <div className="flex shrink-0 items-center gap-1.5 rounded-md bg-red-600 px-2 py-1">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
+                <span className="text-[11px] font-black uppercase tracking-widest text-white">
+                  Live
+                </span>
+              </div>
 
-            <div className="flex flex-1 items-center justify-center gap-2">
+              {/* Teams + score */}
               {isRealTeam(m.team1) && (
-                <>
-                  <span
-                    className="font-bold"
-                    style={owner1 ? { color: owner1.colour } : undefined}
-                  >
-                    {code(m.team1)}
-                  </span>
-                  <span className="text-xl font-black tabular-nums">
+                <div className="flex flex-1 items-center justify-center gap-3">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <TeamFlag team={m.team1} size={22} />
+                    <span
+                      className="hidden font-bold text-white sm:block truncate"
+                      style={owner1 ? { color: owner1.colour } : undefined}
+                    >
+                      {m.team1}
+                    </span>
+                    <span
+                      className="font-bold text-white sm:hidden"
+                      style={owner1 ? { color: owner1.colour } : undefined}
+                    >
+                      {code(m.team1)}
+                    </span>
+                  </div>
+
+                  <span className="shrink-0 text-2xl font-black tabular-nums text-white">
                     {m.score1 ?? 0}&nbsp;–&nbsp;{m.score2 ?? 0}
                   </span>
-                  <span
-                    className="font-bold"
-                    style={owner2 ? { color: owner2.colour } : undefined}
-                  >
-                    {code(m.team2)}
-                  </span>
-                </>
-              )}
-            </div>
 
-            <span className="shrink-0 text-xs text-soft">tap to open →</span>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span
+                      className="hidden font-bold text-white sm:block truncate"
+                      style={owner2 ? { color: owner2.colour } : undefined}
+                    >
+                      {m.team2}
+                    </span>
+                    <span
+                      className="font-bold text-white sm:hidden"
+                      style={owner2 ? { color: owner2.colour } : undefined}
+                    >
+                      {code(m.team2)}
+                    </span>
+                    <TeamFlag team={m.team2} size={22} />
+                  </div>
+                </div>
+              )}
+
+              {/* Clock + cta */}
+              <div className="shrink-0 text-right">
+                <div className="text-sm font-bold text-white">{m.clock ?? ""}</div>
+                <div className="text-[11px] text-white/50">tap for more →</div>
+              </div>
+            </div>
           </Link>
         );
       })}
