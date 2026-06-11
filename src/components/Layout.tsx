@@ -102,13 +102,12 @@ export function Layout() {
         )}
 
         <main className="min-w-0 flex-1 p-4">
-          {loading ? (
-            <div className="flex h-64 items-center justify-center text-soft">
-              Loading tournament data…
+          {loading && (
+            <div className="mb-3 h-1 w-full overflow-hidden rounded-full bg-edge">
+              <div className="h-full animate-pulse rounded-full bg-accent" style={{ width: "60%" }} />
             </div>
-          ) : (
-            <Outlet />
           )}
+          <Outlet />
         </main>
       </div>
 
