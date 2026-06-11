@@ -9,22 +9,22 @@ export type Participant = {
 };
 
 export const participants: Participant[] = [
-  { id: "barry",   name: "Barry",   teams: [], colour: "#3B82F6" },
-  { id: "jo",      name: "Jo",      teams: [], colour: "#10B981" },
-  { id: "aaron",   name: "Aaron",   teams: [], colour: "#F59E0B" },
-  { id: "jack",    name: "Jack",    teams: [], colour: "#8B5CF6" },
-  { id: "hannah",  name: "Hannah",  teams: [], colour: "#EF4444" },
-  { id: "shane",   name: "Shane",   teams: [], colour: "#06B6D4" },
-  { id: "angela",  name: "Angela",  teams: [], colour: "#EC4899" },
-  { id: "terry",   name: "Terry",   teams: [], colour: "#84CC16" },
-  { id: "clodagh", name: "Clodagh", teams: [], colour: "#F97316" },
-  { id: "keiran",  name: "Keiran",  teams: [], colour: "#A855F7" },
-  { id: "laura",   name: "Laura",   teams: [], colour: "#14B8A6" },
-  { id: "anne",    name: "Anne",    teams: [], colour: "#FB7185" },
-  { id: "granny",  name: "Granny",  teams: [], colour: "#FBBF24" },
-  { id: "emma",    name: "Emma",    teams: [], colour: "#4ADE80" },
-  { id: "dylan",   name: "Dylan",   teams: [], colour: "#60A5FA" },
-  { id: "evan",    name: "Evan",    teams: [], colour: "#F43F5E" },
+  { id: "aaron",   name: "Aaron",   teams: ["DR Congo", "England", "Switzerland"],           colour: "#F59E0B" },
+  { id: "angela",  name: "Angela",  teams: ["Iran", "South Africa", "Spain"],                colour: "#EC4899" },
+  { id: "anne",    name: "Anne",    teams: ["Australia", "France", "New Zealand"],            colour: "#FB7185" },
+  { id: "barry",   name: "Barry",   teams: ["Bosnia & Herzegovina", "Portugal", "Turkey"],   colour: "#3B82F6" },
+  { id: "clodagh", name: "Clodagh", teams: ["Canada", "Jordan", "Senegal"],                  colour: "#F97316" },
+  { id: "dylan",   name: "Dylan",   teams: ["Colombia", "Ghana", "South Korea"],             colour: "#60A5FA" },
+  { id: "emma",    name: "Emma",    teams: ["Egypt", "Netherlands", "Qatar"],                colour: "#4ADE80" },
+  { id: "evan",    name: "Evan",    teams: ["Argentina", "Paraguay", "Tunisia"],             colour: "#F43F5E" },
+  { id: "hannah",  name: "Hannah",  teams: ["Cape Verde", "Panama", "Uruguay"],              colour: "#EF4444" },
+  { id: "jack",    name: "Jack",    teams: ["Ivory Coast", "Mexico", "Scotland"],            colour: "#8B5CF6" },
+  { id: "jo",      name: "Jo",      teams: ["Algeria", "Saudi Arabia", "USA"],               colour: "#10B981" },
+  { id: "keiran",  name: "Keiran",  teams: ["Croatia", "Haiti", "Norway"],                   colour: "#A855F7" },
+  { id: "laura",   name: "Laura",   teams: ["Czech Republic", "Ecuador", "Morocco"],         colour: "#14B8A6" },
+  { id: "mary",    name: "Mary",    teams: ["Brazil", "Curaçao", "Sweden"],                  colour: "#FBBF24" },
+  { id: "shane",   name: "Shane",   teams: ["Austria", "Germany", "Uzbekistan"],             colour: "#06B6D4" },
+  { id: "terry",   name: "Terry",   teams: ["Belgium", "Iraq", "Japan"],                     colour: "#84CC16" },
 ];
 
 export const drawDone = participants.some((p) => p.teams.length > 0);
