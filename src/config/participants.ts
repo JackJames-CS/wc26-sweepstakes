@@ -23,8 +23,8 @@ export const participants: Participant[] = [
   { id: "anne",    name: "Anne",    teams: [], colour: "#FB7185" },
   { id: "granny",  name: "Granny",  teams: [], colour: "#FBBF24" },
   { id: "emma",    name: "Emma",    teams: [], colour: "#4ADE80" },
-  // Dylan TBC — if he joins, expanding to 16 players means 3 teams each:
-  // { id: "dylan", name: "Dylan", teams: [], colour: "#60A5FA" },
+  { id: "dylan",   name: "Dylan",   teams: [], colour: "#60A5FA" },
+  { id: "evan",    name: "Evan",    teams: [], colour: "#F43F5E" },
 ];
 
 export const drawDone = participants.some((p) => p.teams.length > 0);
