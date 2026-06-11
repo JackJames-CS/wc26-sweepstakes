@@ -5,21 +5,24 @@ import { LiveBanner } from "./LiveBanner";
 import { GoalFlash } from "./GoalFlash";
 import { useParticipant } from "../context/ParticipantContext";
 import { useData } from "../context/DataContext";
-import { minsAgo } from "../lib/format";
-
-const tabs = [
-  { to: "/", label: "Overview", end: true },
-  { to: "/groups", label: "Groups" },
-  { to: "/bracket", label: "Bracket" },
-  { to: "/history", label: "History" },
-  { to: "/stats", label: "Stats" },
-  { to: "/teams", label: "Teams" },
-];
+import { minsAgo, isToday } from "../lib/format";
 
 export function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { selected, clear } = useParticipant();
-  const { lastUpdated, error, loading } = useData();
+  const { lastUpdated, error, loading, matches } = useData();
+  const hasLive = matches.some((m) => m.status === "live");
+  const hasToday = matches.some((m) => isToday(m.kickoff));
+
+  const tabs = [
+    { to: "/", label: "Overview", end: true },
+    ...(hasToday ? [{ to: "/live", label: "Live", dot: hasLive }] : []),
+    { to: "/groups", label: "Groups" },
+    { to: "/bracket", label: "Bracket" },
+    { to: "/history", label: "History" },
+    { to: "/stats", label: "Stats" },
+    { to: "/teams", label: "Teams" },
+  ];
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -35,7 +38,7 @@ export function Layout() {
                 to={t.to}
                 end={t.end}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
+                  `relative rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
                     isActive
                       ? "bg-accent text-white"
                       : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -43,6 +46,9 @@ export function Layout() {
                 }
               >
                 {t.label}
+                {"dot" in t && t.dot && (
+                  <span className="absolute right-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
+                )}
               </NavLink>
             ))}
           </nav>
@@ -71,12 +77,15 @@ export function Layout() {
               to={t.to}
               end={t.end}
               className={({ isActive }) =>
-                `shrink-0 rounded-lg px-3 py-1.5 text-sm font-semibold ${
+                `relative shrink-0 rounded-lg px-3 py-1.5 text-sm font-semibold ${
                   isActive ? "bg-accent text-white" : "text-white/70"
                 }`
               }
             >
               {t.label}
+              {"dot" in t && t.dot && (
+                <span className="absolute right-1 top-1 h-1.5 w-1.5 animate-pulse rounded-full bg-red-400" />
+              )}
             </NavLink>
           ))}
         </nav>
