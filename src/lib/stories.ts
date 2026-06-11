@@ -369,24 +369,32 @@ function buildStories(
 
 // ── pre-tournament teaser ──
 
-function preTournamentBulletin(matches: WCMatch[]): Bulletin | null {
+function preTournamentBulletin(matches: WCMatch[], shuffle = 0): Bulletin | null {
   const opener = matches
     .filter((m) => m.kickoff)
     .sort((a, b) => a.kickoff!.getTime() - b.kickoff!.getTime())[0];
   if (!opener?.kickoff) return null;
   const today = dayKey(new Date()) === dayKey(opener.kickoff);
   const pot = participants.length * 10;
-  const lines: Story[] = [];
-  for (const t of [opener.team1, opener.team2]) {
+
+  // Build a pool of team history stories to shuffle through
+  const pool: Story[] = [];
+  for (const t of TEAM_BY_NAME.keys()) {
     const code = TEAM_BY_NAME.get(t)?.fifaCode;
     const h = code ? TEAM_HISTORY[code] : undefined;
-    if (h) lines.push({ emoji: "🎙️", text: `${t}: ${h.flavour}`, weight: 1, to: teamLink(t) });
+    if (h) pool.push({ emoji: "🎙️", text: `${t}: ${h.flavour}`, weight: 1, to: teamLink(t) });
   }
-  lines.push({
+  pool.push({
     emoji: "💰",
     text: `${matches.length} matches. 39 days. €${pot} in the pot. One winner.`,
-    weight: 1,
+    weight: 2,
   });
+
+  const rng = mulberry32(hash(dayKey(new Date())) + shuffle * 7919);
+  // Shuffle the pool and pick 3
+  const shuffled = [...pool].sort(() => rng() - 0.5);
+  const lines = shuffled.slice(0, 3);
+
   return {
     headline: {
       emoji: "🚨",
@@ -435,7 +443,7 @@ export function buildBulletin(
 ): Bulletin | null {
   if (matches.length === 0) return null;
   const anyPlayed = matches.some((m) => m.status === "finished");
-  if (!anyPlayed) return preTournamentBulletin(matches);
+  if (!anyPlayed) return preTournamentBulletin(matches, shuffle);
 
   const stories = buildStories(matches, statuses);
   if (stories.length === 0) return null;

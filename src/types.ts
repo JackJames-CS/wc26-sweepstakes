@@ -40,6 +40,7 @@ export type WCMatch = {
   goals1: Goal[];
   goals2: Goal[];
   ground?: string;
+  espnId?: string;
 };
 
 // A scoring play from ESPN's scoreboard `details` array.
@@ -56,12 +57,27 @@ export type EspnGoal = {
 };
 
 export type EspnEvent = {
+  id: string;
   utcDate: string; // YYYY-MM-DD
   state: "pre" | "in" | "post";
   clock: string;
   teams: { code: string; name: string; score: number }[];
   goals: EspnGoal[];
 };
+
+export type EspnLineupPlayer = {
+  name: string;
+  jersey: string | null;
+  starter: boolean;
+  subbedIn: boolean;
+  subbedOut: boolean;
+  posAbbr: string;
+};
+
+export type EspnLineup = {
+  team1: EspnLineupPlayer[];
+  team2: EspnLineupPlayer[];
+} | null;
 
 export type TeamStatus =
   | "group"

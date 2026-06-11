@@ -1,11 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useData } from "../context/DataContext";
 import { useParticipant } from "../context/ParticipantContext";
 import { useSquads } from "../hooks/useSquads";
 import { TeamFlag } from "../components/TeamFlag";
 import { ownerOf } from "../config/participants";
 import { isToday, fmtTime, fmtDate } from "../lib/format";
-import type { WCMatch, SquadPlayer } from "../types";
+import { fetchEspnLineup } from "../lib/espn";
+import type { EspnLineup, EspnLineupPlayer, WCMatch, SquadPlayer } from "../types";
 
 const POS_ORDER: Record<string, number> = { G: 0, D: 1, M: 2, F: 3 };
 const POS_LABEL: Record<string, string> = { G: "Goalkeeper", D: "Defenders", M: "Midfielders", F: "Forwards" };
@@ -211,23 +212,81 @@ function GoalTimeline({ match }: { match: WCMatch }) {
   );
 }
 
+function PlayerRow({
+  player,
+  clubLookup,
+  scorers,
+  dim,
+}: {
+  player: EspnLineupPlayer;
+  clubLookup: Map<string, SquadPlayer>;
+  scorers: Set<string>;
+  dim?: boolean;
+}) {
+  const squadInfo = clubLookup.get(player.jersey ?? "") ?? clubLookup.get(player.name.toLowerCase());
+  const scored = scorers.has(player.name.toLowerCase());
+  return (
+    <div
+      className={`flex items-center gap-2 border-b border-edge px-4 py-2 last:border-b-0 text-sm ${
+        scored ? "bg-amber-50" : ""
+      } ${dim ? "opacity-50" : ""}`}
+    >
+      <span className="w-6 shrink-0 text-center text-xs font-bold text-soft tabular-nums">
+        {player.jersey ?? "—"}
+      </span>
+      <span className={`flex-1 font-medium ${scored ? "text-amber-700" : ""}`}>
+        {player.name}
+        {scored && " ⚽"}
+        {player.subbedOut && <span className="ml-1 text-xs text-red-500">↓</span>}
+        {player.subbedIn && <span className="ml-1 text-xs text-green-600">↑</span>}
+      </span>
+      <span className="text-xs text-soft">{player.posAbbr}</span>
+      {squadInfo?.club && (
+        <span className="hidden text-xs text-soft truncate max-w-[80px] sm:block">
+          {squadInfo.club}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function SquadPanel({
   team,
   squad,
+  lineup,
+  side,
   scorers,
 }: {
   team: string;
   squad: SquadPlayer[];
+  lineup: EspnLineup;
+  side: "team1" | "team2";
   scorers: Set<string>;
 }) {
   const owner = ownerOf(team);
-  const grouped = useMemo(() => {
-    const g: Record<string, SquadPlayer[]> = {};
+
+  // Build lookup from jersey → SquadPlayer for enriching ESPN data
+  const clubLookup = useMemo(() => {
+    const m = new Map<string, SquadPlayer>();
     for (const p of squad) {
-      (g[p.pos] ??= []).push(p);
+      if (p.jersey) m.set(p.jersey, p);
+      m.set(p.name.toLowerCase(), p);
     }
-    return Object.entries(g).sort(([a], [b]) => (POS_ORDER[a] ?? 9) - (POS_ORDER[b] ?? 9));
+    return m;
   }, [squad]);
+
+  const lineupPlayers = lineup?.[side] ?? [];
+  const starters = lineupPlayers.filter((p) => p.starter);
+  const subs = lineupPlayers.filter((p) => !p.starter);
+  const hasLineup = lineupPlayers.length > 0;
+
+  // Fallback to squads.json grouped by position
+  const grouped = useMemo(() => {
+    if (hasLineup) return null;
+    const g: Record<string, SquadPlayer[]> = {};
+    for (const p of squad) (g[p.pos] ??= []).push(p);
+    return Object.entries(g).sort(([a], [b]) => (POS_ORDER[a] ?? 9) - (POS_ORDER[b] ?? 9));
+  }, [squad, hasLineup]);
 
   return (
     <div className="rounded-xl border border-edge bg-card shadow-sm overflow-hidden">
@@ -247,40 +306,54 @@ function SquadPanel({
         )}
       </div>
 
-      {squad.length === 0 ? (
-        <p className="px-4 py-3 text-sm text-soft">Squad not available</p>
-      ) : (
-        <div>
-          {grouped.map(([pos, players]) => (
-            <div key={pos}>
-              <div className="bg-cream px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-soft">
-                {POS_LABEL[pos] ?? pos}
-              </div>
-              {players.map((p) => {
-                const scored = scorers.has(p.name.toLowerCase());
-                return (
-                  <div
-                    key={p.id}
-                    className={`flex items-center gap-2 border-b border-edge px-4 py-2 last:border-b-0 text-sm ${
-                      scored ? "bg-amber-50" : ""
-                    }`}
-                  >
-                    <span className="w-6 shrink-0 text-center text-xs font-bold text-soft tabular-nums">
-                      {p.jersey ?? "—"}
-                    </span>
-                    <span className={`flex-1 font-medium ${scored ? "text-amber-700" : ""}`}>
-                      {p.name}
-                      {scored && " ⚽"}
-                    </span>
-                    {p.club && (
-                      <span className="text-xs text-soft truncate max-w-[80px]">{p.club}</span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+      {hasLineup ? (
+        <>
+          <div className="bg-cream px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-soft">
+            Starting XI
+          </div>
+          {starters.map((p) => (
+            <PlayerRow key={p.name} player={p} clubLookup={clubLookup} scorers={scorers} />
           ))}
-        </div>
+          {subs.length > 0 && (
+            <>
+              <div className="bg-cream px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-soft">
+                Substitutes
+              </div>
+              {subs.map((p) => (
+                <PlayerRow key={p.name} player={p} clubLookup={clubLookup} scorers={scorers} dim={!p.subbedIn} />
+              ))}
+            </>
+          )}
+        </>
+      ) : grouped ? (
+        grouped.map(([pos, players]) => (
+          <div key={pos}>
+            <div className="bg-cream px-4 py-1 text-[11px] font-bold uppercase tracking-widest text-soft">
+              {POS_LABEL[pos] ?? pos}
+            </div>
+            {players.map((p) => {
+              const scored = scorers.has(p.name.toLowerCase());
+              return (
+                <div
+                  key={p.id}
+                  className={`flex items-center gap-2 border-b border-edge px-4 py-2 last:border-b-0 text-sm ${scored ? "bg-amber-50" : ""}`}
+                >
+                  <span className="w-6 shrink-0 text-center text-xs font-bold text-soft tabular-nums">
+                    {p.jersey ?? "—"}
+                  </span>
+                  <span className={`flex-1 font-medium ${scored ? "text-amber-700" : ""}`}>
+                    {p.name}{scored && " ⚽"}
+                  </span>
+                  {p.club && (
+                    <span className="text-xs text-soft truncate max-w-[80px]">{p.club}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))
+      ) : (
+        <p className="px-4 py-3 text-sm text-soft">Squad not available</p>
       )}
     </div>
   );
@@ -305,10 +378,21 @@ export function Live() {
   }, [matches, selected]);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [lineup, setLineup] = useState<EspnLineup>(null);
 
   const activeMatch: WCMatch | undefined =
     (selectedId ? todayMatches.find((m) => m.id === selectedId) : undefined) ??
     todayMatches[0];
+
+  // Fetch lineup when match has an ESPN ID (available for live + recent finished)
+  useEffect(() => {
+    if (!activeMatch?.espnId) { setLineup(null); return; }
+    let cancelled = false;
+    fetchEspnLineup(activeMatch.espnId).then((data) => {
+      if (!cancelled) setLineup(data);
+    }).catch(() => { if (!cancelled) setLineup(null); });
+    return () => { cancelled = true; };
+  }, [activeMatch?.espnId]);
 
   const scorers1 = useMemo(
     () => new Set((activeMatch?.goals1 ?? []).map((g) => g.name.toLowerCase())),
@@ -364,8 +448,8 @@ export function Live() {
           <section>
             <h2 className="mb-3 text-lg font-bold">📋 Squads</h2>
             <div className="grid gap-4 sm:grid-cols-2">
-              <SquadPanel team={activeMatch.team1} squad={squad1} scorers={scorers1} />
-              <SquadPanel team={activeMatch.team2} squad={squad2} scorers={scorers2} />
+              <SquadPanel team={activeMatch.team1} squad={squad1} lineup={lineup} side="team1" scorers={scorers1} />
+              <SquadPanel team={activeMatch.team2} squad={squad2} lineup={lineup} side="team2" scorers={scorers2} />
             </div>
           </section>
         </>

@@ -1,4 +1,4 @@
-import type { EspnEvent, EspnGoal, Goal, WCMatch } from "../types";
+import type { EspnEvent, EspnGoal, EspnLineup, EspnLineupPlayer, Goal, WCMatch } from "../types";
 import { TEAM_BY_CODE, TEAM_BY_NAME } from "../data/teams";
 
 const ESPN_URL =
@@ -92,6 +92,7 @@ export async function fetchEspnScoreboard(): Promise<EspnEvent[]> {
       });
     }
     events.push({
+      id: e.id ?? "",
       utcDate: (e.date ?? "").slice(0, 10),
       state,
       clock: comp.status?.displayClock ?? "",
@@ -151,6 +152,7 @@ export function mergeEspn(matches: WCMatch[], events: EspnEvent[]): WCMatch[] {
     if (ev.state === "in") {
       return {
         ...m,
+        espnId: ev.id || m.espnId,
         status: "live",
         score1: scoreFor(m.team1),
         score2: scoreFor(m.team2),
@@ -162,6 +164,7 @@ export function mergeEspn(matches: WCMatch[], events: EspnEvent[]): WCMatch[] {
     if (ev.state === "post" && m.status !== "finished") {
       return {
         ...m,
+        espnId: ev.id || m.espnId,
         status: "finished",
         score1: scoreFor(m.team1),
         score2: scoreFor(m.team2),
@@ -170,6 +173,46 @@ export function mergeEspn(matches: WCMatch[], events: EspnEvent[]): WCMatch[] {
         goals2: goalsFor(m.team2, m.team1),
       };
     }
+    if (ev.id) {
+      return { ...m, espnId: ev.id };
+    }
     return m;
   });
+}
+
+const ESPN_SUMMARY = (id: string) =>
+  `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/summary?event=${id}`;
+
+export async function fetchEspnLineup(eventId: string): Promise<EspnLineup> {
+  const res = await fetch(ESPN_SUMMARY(eventId));
+  if (!res.ok) return null;
+  const data = await res.json();
+  const rosters: unknown[] = data.rosters ?? [];
+  if (rosters.length < 2) return null;
+
+  const parseRoster = (roster: unknown): EspnLineupPlayer[] => {
+    const entries: unknown[] = (roster as { entries?: unknown[] }).entries ?? [];
+    return entries.map((e) => {
+      const entry = e as {
+        starter?: boolean;
+        subbedIn?: boolean;
+        subbedOut?: boolean;
+        athlete?: { displayName?: string; jersey?: string };
+        position?: { abbreviation?: string };
+      };
+      return {
+        name: entry.athlete?.displayName ?? "",
+        jersey: entry.athlete?.jersey ?? null,
+        starter: entry.starter ?? false,
+        subbedIn: entry.subbedIn ?? false,
+        subbedOut: entry.subbedOut ?? false,
+        posAbbr: entry.position?.abbreviation ?? "",
+      };
+    });
+  };
+
+  return {
+    team1: parseRoster(rosters[0]),
+    team2: parseRoster(rosters[1]),
+  };
 }
