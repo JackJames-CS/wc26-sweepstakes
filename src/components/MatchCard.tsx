@@ -3,6 +3,7 @@ import { isRealTeam, placeholderLabel } from "../lib/parse";
 import { fmtDate, fmtTime } from "../lib/format";
 import { TeamFlag } from "./TeamFlag";
 import { OwnerBadge } from "./OwnerBadge";
+import { ownerOf } from "../config/participants";
 
 function TeamSide({ team, alignRight }: { team: string; alignRight?: boolean }) {
   const real = isRealTeam(team);
@@ -68,6 +69,12 @@ export function MatchCard({
       </div>
     );
 
+  const owner1 = ownerOf(match.team1);
+  const owner2 = ownerOf(match.team2);
+  const isH2H =
+    owner1 && owner2 && owner1.id !== owner2.id &&
+    (match.status === "scheduled" || match.status === "live");
+
   return (
     <div
       className="rounded-xl border border-edge bg-card p-3 shadow-sm"
@@ -86,6 +93,14 @@ export function MatchCard({
         {centre}
         <TeamSide team={match.team2} alignRight />
       </div>
+      {isH2H && (
+        <div className="mt-2 flex items-center justify-center gap-1.5 rounded-lg bg-cream px-3 py-1 text-xs font-semibold">
+          🔥{" "}
+          <span style={{ color: owner1.colour }}>{owner1.name}</span>
+          <span className="text-soft">vs</span>
+          <span style={{ color: owner2.colour }}>{owner2.name}</span>
+        </div>
+      )}
       {(showScorers || status === "live") &&
         (match.goals1.length > 0 || match.goals2.length > 0) && (
         <div className="mt-2 flex justify-between gap-2 border-t border-edge pt-2 text-xs text-soft">
