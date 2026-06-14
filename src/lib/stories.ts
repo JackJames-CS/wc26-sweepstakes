@@ -41,15 +41,30 @@ export function strengthOf(team: string): number {
 
 // ── goal-timeline reconstruction (null when goal data is incomplete) ──
 
+// openfootball stores minute as "80" or "90+4"; ESPN uses minute + offset.
+function goalMin(g: { minute: number | string; offset?: number }): number {
+  let base: number;
+  let extra = g.offset ?? 0;
+  if (typeof g.minute === "string") {
+    const m = g.minute.match(/^(\d+)(?:\+(\d+))?$/);
+    if (!m) return 0;
+    base = Number(m[1]);
+    if (m[2]) extra = Number(m[2]);
+  } else {
+    base = g.minute;
+  }
+  return base + extra / 10;
+}
+
 function timeline(m: WCMatch): { min: number; side: 1 | 2 }[] | null {
   const total = (m.score1 ?? 0) + (m.score2 ?? 0);
   const list = [
     ...m.goals1.map((g) => ({
-      min: g.minute + (g.offset ?? 0) / 10,
+      min: goalMin(g),
       side: 1 as const,
     })),
     ...m.goals2.map((g) => ({
-      min: g.minute + (g.offset ?? 0) / 10,
+      min: goalMin(g),
       side: 2 as const,
     })),
   ];
